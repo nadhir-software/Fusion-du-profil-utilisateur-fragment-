@@ -16,6 +16,9 @@ class CrawlRequest(BaseModel):
 class CrawlResponse(BaseModel):
     status: str
     job_id: str
+    # hash unifié sous lequel le profil sera stocké (à interroger ensuite via
+    # GET /api/v1/profile/{user_hash}).
+    user_hash: str
 
 
 class UserRecoRequest(BaseModel):
