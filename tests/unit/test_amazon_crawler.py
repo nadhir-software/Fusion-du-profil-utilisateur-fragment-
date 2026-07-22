@@ -1,13 +1,15 @@
-"""Tests AmazonCrawlerAgent — helpers de parsing (offline) + flux anonymisé.
+"""Tests AmazonCrawlerAgent — parsing (offline) + flux anonymisé en RAM.
 
 Aucune I/O réseau : le HTML est fourni en dur et ``crawl_user`` est
-monkeypatché pour valider l'anonymisation appliquée par ``run()``.
+monkeypatché pour valider l'anonymisation appliquée par ``run()`` — laquelle
+n'écrit QUE dans un tampon mémoire (SessionBuffer), jamais sur disque.
 """
 
 import json
 
 import pytest
 
+from maha_these.core.session_buffer import SessionBuffer
 from maha_these.layer1_crawling.amazon_crawler import AmazonCrawlerAgent
 
 SAMPLE_HTML = """
@@ -60,14 +62,13 @@ def test_parse_reviews():
 def test_limit_reviews():
     pytest.importorskip("bs4")
     c = AmazonCrawlerAgent(config={"limit_reviews": 1})
-    monkey_html = SAMPLE_HTML
-    c._fetch_html = lambda url: monkey_html  # type: ignore[assignment]
+    c._fetch_html = lambda url: SAMPLE_HTML  # type: ignore[assignment]
     out = c.crawl_user("https://www.amazon.com/profile/amzn1.account.XYZ")
     assert len(out["reviews"]) == 1
 
 
-def test_run_anonymizes_before_storage(tmp_path, monkeypatch):
-    """run() doit hasher l'identifiant et nettoyer les PII avant stockage."""
+def test_run_anonymizes_in_ram(monkeypatch):
+    """run() doit anonymiser et n'écrire QUE dans le tampon RAM."""
     c = AmazonCrawlerAgent()
     monkeypatch.setattr(
         c,
@@ -85,17 +86,15 @@ def test_run_anonymizes_before_storage(tmp_path, monkeypatch):
         },
     )
 
-    result = c.run(
-        "https://www.amazon.com/profile/amzn1.account.XYZ", output_dir=tmp_path
-    )
-    assert result["status"] == "success"
+    with SessionBuffer() as buf:
+        result = c.run("https://www.amazon.com/profile/amzn1.account.XYZ", buffer=buf)
+        assert result["status"] == "success"
+        assert "silo_path" not in result  # rien n'est persisté sur disque
 
-    stored = json.loads(
-        (tmp_path / "amazon" / f"{result['user_hash']}.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    blob = json.dumps(stored)
-    assert "amzn1.account.XYZ" not in blob  # identifiant hashé
-    assert "bob@shop.com" not in blob  # email nettoyé
-    assert stored["user_hash"] == result["user_hash"]
+        stored = buf.read("amazon")
+        blob = json.dumps(stored)
+        assert "amzn1.account.XYZ" not in blob  # identifiant hashé
+        assert "bob@shop.com" not in blob  # email nettoyé
+        assert stored["user_hash"] == result["user_hash"]
+
+    assert buf.read("amazon") is None  # session vidée

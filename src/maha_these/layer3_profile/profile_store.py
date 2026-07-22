@@ -1,53 +1,44 @@
-"""ProfileStore — stockage et indexation des profils JSON.
+"""ProfileStore — magasin de profils EN MÉMOIRE (RAM uniquement).
 
-Persiste chaque profil dans ``<profiles_dir>/<user_hash>.json`` et fournit
-un chargement individuel ou global. Implémentation par méthodes de classe pour
-un usage direct (``ProfileStore.load(user_hash)``) conforme à l'API REST.
+Conformément au principe fondateur (« ne pas enregistrer les data »), les
+profils générés ne sont **jamais** écrits sur disque : ils sont conservés dans
+un registre en RAM, indexé par ``user_hash``, partagé au sein du processus API.
+
+Conséquence assumée : les profils sont volatils (perdus au redémarrage du
+processus) et non partagés entre workers. C'est le compromis voulu pour
+garantir l'absence totale de persistance. Pour un déploiement multi-workers,
+brancher un magasin externe chiffré resterait une extension (hors périmètre).
 """
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Any
-
-DEFAULT_PROFILES_DIR = Path("./data/profiles")
 
 
 class ProfileStore:
-    """Magasin de profils JSON indexés par ``user_hash``."""
+    """Registre de profils en mémoire, indexé par ``user_hash``."""
 
-    profiles_dir: Path = DEFAULT_PROFILES_DIR
-
-    @classmethod
-    def _path(cls, user_hash: str) -> Path:
-        return cls.profiles_dir / f"{user_hash}.json"
+    #: registre RAM partagé au niveau du processus.
+    _store: dict[str, dict[str, Any]] = {}
 
     @classmethod
-    def save(cls, profile: dict[str, Any]) -> Path:
-        """Persiste un profil ; requiert la clé ``user_hash``."""
+    def save(cls, profile: dict[str, Any]) -> str:
+        """Enregistre un profil en RAM ; requiert la clé ``user_hash``."""
         user_hash = profile["user_hash"]
-        path = cls._path(user_hash)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(profile, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-        return path
+        cls._store[user_hash] = profile
+        return user_hash
 
     @classmethod
     def load(cls, user_hash: str) -> dict[str, Any] | None:
         """Charge un profil, ou ``None`` s'il n'existe pas."""
-        path = cls._path(user_hash)
-        if not path.exists():
-            return None
-        return json.loads(path.read_text(encoding="utf-8"))
+        return cls._store.get(user_hash)
 
     @classmethod
     def load_all(cls) -> list[dict[str, Any]]:
-        """Charge tous les profils du magasin."""
-        if not cls.profiles_dir.exists():
-            return []
-        return [
-            json.loads(p.read_text(encoding="utf-8"))
-            for p in cls.profiles_dir.glob("*.json")
-        ]
+        """Charge tous les profils du registre."""
+        return list(cls._store.values())
+
+    @classmethod
+    def clear(cls) -> None:
+        """Vide le registre (effacement RAM explicite)."""
+        cls._store.clear()

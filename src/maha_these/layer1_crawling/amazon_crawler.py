@@ -1,7 +1,8 @@
 """AmazonCrawlerAgent — collecte d'avis publics via Playwright + BeautifulSoup.
 
 Collecte les avis/notes publics d'un profil public Amazon, les anonymise puis
-les stocke dans un silo isolé. Signal ``purchase``.
+les pousse dans un tampon mémoire isolé (SessionBuffer, RAM). Signal
+``purchase``. Aucune écriture disque.
 
 ⚠️ Confidentialité & conformité : seuls des avis **publics** sont collectés et
 ils sont anonymisés immédiatement par ``DataAnonymizer`` (via

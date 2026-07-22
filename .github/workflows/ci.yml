@@ -35,10 +35,10 @@ jobs:
           pip install -e ".[dev,crawl]"
 
       - name: Lint (ruff)
-        run: ruff check src evaluation dashboard tests
+        run: ruff check src evaluation tests
 
       - name: Format check (black)
-        run: black --check src evaluation dashboard tests
+        run: black --check src evaluation tests
 
       - name: Run tests
         run: pytest -q --cov=maha_these --cov-report=term-missing

@@ -2,20 +2,20 @@
 
 Contient :
 - BaseAgent      : interface abstraite commune à tous les agents.
-- data_models    : modèles Pydantic (Post, Comment, Fragment, UserProfile...).
+- data_models    : modèles Pydantic (Post, Comment, Fragment, Profile...).
 - DataAnonymizer : anonymisation SHA-256 + nettoyage PII dès la collecte.
-- LocalDataSilo  : stockage local isolé par plateforme.
+- SessionBuffer  : tampon RAM isolé par session (aucune persistance disque).
 """
 
 from .anonymizer import DataAnonymizer
 from .base_agent import BaseAgent
 from .data_models import Comment, Fragment, Post, TrainerOutput, UserProfile
-from .local_silo import LocalDataSilo
+from .session_buffer import SessionBuffer
 
 __all__ = [
     "BaseAgent",
     "DataAnonymizer",
-    "LocalDataSilo",
+    "SessionBuffer",
     "Post",
     "Comment",
     "Fragment",

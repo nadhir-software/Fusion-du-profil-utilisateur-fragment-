@@ -4,7 +4,8 @@ Deux garanties (couvertes par tests/unit/test_anonymizer.py) :
 1. L'identifiant nominatif (username) est remplacé par un hash SHA-256.
 2. Le texte libre est nettoyé de ses PII résiduels (mentions, URLs, emails).
 
-Cette étape est appliquée AVANT tout stockage sur disque (LocalDataSilo).
+Cette étape est appliquée dès la collecte, AVANT toute mise en tampon
+mémoire (SessionBuffer). Aucune donnée n'est jamais écrite sur disque.
 """
 
 from __future__ import annotations

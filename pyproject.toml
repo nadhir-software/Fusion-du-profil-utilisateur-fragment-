@@ -73,10 +73,7 @@ crawl = [
   "beautifulsoup4>=4.12,<5",
 ]
 
-# Couche 5 — dashboard
-dashboard = [
-  "streamlit>=1.36,<2",
-]
+# Couche 5 — dashboard : voir frontend/ (React + Vite, géré par npm).
 
 [tool.setuptools]
 package-dir = {"" = "src"}

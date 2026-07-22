@@ -1,7 +1,8 @@
 """Couche 1 — Crawling multi-plateformes sécurisé.
 
 Collecte de données publiques (Reddit, LinkedIn, Amazon), anonymisation
-immédiate (DataAnonymizer) puis stockage local isolé (LocalDataSilo).
+immédiate (DataAnonymizer) puis mise en tampon mémoire isolé
+(SessionBuffer, RAM uniquement — aucune écriture disque).
 """
 
 from .amazon_crawler import AmazonCrawlerAgent

@@ -1,1 +1,0 @@
-"""Onglets du dashboard Streamlit."""

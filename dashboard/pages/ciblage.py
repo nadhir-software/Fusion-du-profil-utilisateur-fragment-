@@ -28,3 +28,4 @@ def render() -> None:
                 f"{s['size']} profils",
                 f"{s['avg_affinity']:.1%}",
             )
+ 

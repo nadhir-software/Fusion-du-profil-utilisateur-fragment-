@@ -1,13 +1,15 @@
-"""Tests LinkedInCrawlerAgent — helpers de parsing (offline) + flux anonymisé.
+"""Tests LinkedInCrawlerAgent — parsing (offline) + flux anonymisé en RAM.
 
 Aucune I/O réseau : le HTML est fourni en dur et ``crawl_user`` est
-monkeypatché pour valider l'anonymisation appliquée par ``run()``.
+monkeypatché pour valider l'anonymisation appliquée par ``run()`` — laquelle
+n'écrit QUE dans un tampon mémoire (SessionBuffer), jamais sur disque.
 """
 
 import json
 
 import pytest
 
+from maha_these.core.session_buffer import SessionBuffer
 from maha_these.layer1_crawling.linkedin_crawler import LinkedInCrawlerAgent
 
 SAMPLE_HTML = """
@@ -44,8 +46,8 @@ def test_parse_profile_and_skills():
     assert {"Python", "PyTorch"} <= names
 
 
-def test_run_anonymizes_before_storage(tmp_path, monkeypatch):
-    """run() doit hasher le username et nettoyer les PII avant stockage."""
+def test_run_anonymizes_in_ram(monkeypatch):
+    """run() doit anonymiser et n'écrire QUE dans le tampon RAM."""
     c = LinkedInCrawlerAgent()
     monkeypatch.setattr(
         c,
@@ -63,15 +65,16 @@ def test_run_anonymizes_before_storage(tmp_path, monkeypatch):
         },
     )
 
-    result = c.run("https://www.linkedin.com/in/jane-doe/", output_dir=tmp_path)
-    assert result["status"] == "success"
+    with SessionBuffer() as buf:
+        result = c.run("https://www.linkedin.com/in/jane-doe/", buffer=buf)
+        assert result["status"] == "success"
+        assert "silo_path" not in result  # rien n'est persisté sur disque
 
-    stored = json.loads(
-        (tmp_path / "linkedin" / f"{result['user_hash']}.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    blob = json.dumps(stored)
-    assert "jane-doe" not in blob  # username hashé
-    assert "jane@acme.com" not in blob  # email nettoyé
-    assert stored["user_hash"] == result["user_hash"]
+        stored = buf.read("linkedin")
+        blob = json.dumps(stored)
+        assert "jane-doe" not in blob  # username hashé
+        assert "jane@acme.com" not in blob  # email nettoyé
+        assert stored["user_hash"] == result["user_hash"]
+
+    # à la sortie du bloc, la session est vidée
+    assert buf.read("linkedin") is None

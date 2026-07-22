@@ -54,9 +54,10 @@ recommendation:
   n_clusters: 5
 
 storage:
-  silos_dir: "./data/silos"
-  profiles_dir: "./data/profiles"
-  models_dir: "./models/lora_weights"
+  # Données brutes ET profils générés : RAM UNIQUEMENT — aucune persistance.
+  # Ni base, ni CSV, ni JSON, ni cache. Voir core/session_buffer.py et
+  # layer3_profile/profile_store.py (registre en mémoire).
+  models_dir: "./models/lora_weights"  # poids LoRA agrégés (Δθ / θ_global)
 
 mlflow:
   tracking_uri: "./mlruns"

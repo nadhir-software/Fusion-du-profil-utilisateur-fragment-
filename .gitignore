@@ -21,9 +21,8 @@ reports/figures/*
 !data/processed/.gitkeep
 !reports/figures/.gitkeep
 
-# Federated profiling — silos locaux, profils, poids (gitignorés)
-data/silos/**
-data/profiles/**
+# Federated profiling — données brutes ET profils : RAM only (aucune
+# persistance). Seuls les poids LoRA sont écrits sur disque (gitignorés).
 models/**
 mlruns/
 tmp/

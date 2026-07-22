@@ -14,19 +14,41 @@ def run_full_pipeline(
     reddit_username: str,
     linkedin_url: str | None = None,
     amazon_profile_url: str | None = None,
-) -> None:
-    """Orchestration crawl -> preprocess -> train -> aggregate -> profile.
+) -> dict:
+    """Orchestration crawl -> (preprocess -> train -> aggregate -> profil).
 
-    Exécutée en tâche de fond. TODO(Phase 1/2) : brancher l'orchestrateur réel
-    (crawlers, trainers, agrégateur, générateur de profil).
+    Exécutée en tâche de fond. La collecte se fait dans un ``SessionBuffer``
+    **en RAM**, effacé en fin de session (aucune persistance des données).
+
+    TODO(Phase 1/2) : enchaîner prétraitement -> fragments -> entraînement
+    local (Δθ) -> agrégation -> génération de profil, tant que le buffer est
+    vivant (dans ``OrchestrationAgent.run``).
     """
-    # TODO: implémenter l'orchestration complète du pipeline.
-    raise NotImplementedError("run_full_pipeline() — orchestration à brancher.")
+    from maha_these.core.orchestrator import OrchestrationAgent
+    from maha_these.layer1_crawling import (
+        AmazonCrawlerAgent,
+        LinkedInCrawlerAgent,
+        RedditCrawlerAgent,
+    )
+
+    orchestrator = OrchestrationAgent(
+        {
+            "reddit": RedditCrawlerAgent(),
+            "linkedin": LinkedInCrawlerAgent(),
+            "amazon": AmazonCrawlerAgent(),
+        }
+    )
+    targets = {
+        "reddit": reddit_username,
+        "linkedin": linkedin_url or "",
+        "amazon": amazon_profile_url or "",
+    }
+    return orchestrator.run(targets)
 
 
 @router.post("/crawl", response_model=CrawlResponse)
 async def crawl_user(request: CrawlRequest, bg: BackgroundTasks) -> CrawlResponse:
-    """Démarre le pipeline de crawling en arrière-plan."""
+    """Démarre le pipeline de crawling en arrière-plan (collecte en RAM)."""
     bg.add_task(
         run_full_pipeline,
         request.reddit_username,
