@@ -1,0 +1,37 @@
+# platforms.yaml — configuration détaillée par plateforme
+# URL, limites de collecte, champs extraits, mode d'accès
+
+reddit:
+  fragment_id: "F1_reddit"
+  signal_type: "interest"
+  access: "praw"           # PRAW API + MCP Server Reddit
+  base_url: "https://www.reddit.com"
+  limits:
+    posts: 100
+    comments: 200
+    requests_per_minute: 60
+  fields:
+    post: ["id", "title", "body", "subreddit", "score", "created_utc"]
+    comment: ["id", "body", "subreddit", "score", "created_utc"]
+
+linkedin:
+  fragment_id: "F2_linkedin"
+  signal_type: "professional"
+  access: "mcp"            # "mcp" | "playwright"
+  base_url: "https://www.linkedin.com"
+  limits:
+    requests_per_minute: 10
+  fields:
+    profile: ["headline", "summary", "sector", "current_position"]
+    skills: ["name", "endorsements"]
+
+amazon:
+  fragment_id: "F3_amazon"
+  signal_type: "purchase"
+  access: "playwright"     # Playwright + BeautifulSoup
+  base_url: "https://www.amazon.com"
+  limits:
+    reviews: 50
+    requests_per_minute: 15
+  fields:
+    review: ["product", "category", "rating", "text", "verified"]

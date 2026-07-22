@@ -1,0 +1,34 @@
+# experiments.yaml — hyperparamètres des expériences scientifiques EXP-01..05
+# Protocole : mêmes données, même modèle, même seed=42
+
+common:
+  seed: 42
+  holdout_split: 0.2       # 80% entraînement / 20% validation
+  base_model: "mistralai/Mistral-7B-Instruct-v0.3"
+
+exp_01_comparison:
+  description: "Fédéré vs Centralisé vs Mono-source"
+  configs: ["federated", "centralized", "mono_source"]
+  metrics: ["precision_at_1", "precision_at_5", "semantic_coherence", "rouge_l", "ndcg_at_10"]
+  statistical_test: "wilcoxon"   # valider H1 : A ≈ B
+
+exp_02_fragments:
+  description: "Impact du nombre de fragments {1, 2, 3}"
+  fragment_counts: [1, 2, 3]
+  metrics: ["semantic_coherence", "rouge_l"]        # valider H2
+
+exp_03_recommendation:
+  description: "Qualité recommandation fédéré vs centralisé"
+  top_k: [5, 10, 20]
+  metrics: ["ndcg_at_10", "precision_at_5", "davies_bouldin"]
+
+exp_04_lora_rank:
+  description: "Ablation rang LoRA r ∈ {4, 8, 16, 32}"
+  lora_ranks: [4, 8, 16, 32]
+  metrics: ["precision_at_5", "semantic_coherence", "delta_theta_volume"]
+
+exp_05_dp:
+  description: "Differential Privacy (optionnel) — ratio privacy/utility"
+  optional: true
+  dp_noise_sigma: [0.0, 0.05, 0.1, 0.2]
+  metrics: ["semantic_coherence", "privacy_utility_ratio"]

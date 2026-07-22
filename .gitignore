@@ -16,9 +16,15 @@ build/
 htmlcov/
 data/raw/*
 data/processed/*
-models/*
 reports/figures/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-!models/.gitkeep
 !reports/figures/.gitkeep
+
+# Federated profiling — silos locaux, profils, poids (gitignorés)
+data/silos/**
+data/profiles/**
+models/**
+mlruns/
+tmp/
+!**/.gitkeep

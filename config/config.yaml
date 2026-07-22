@@ -1,0 +1,63 @@
+# config.yaml — paramètres globaux du système
+# Fusion Fédérée de Profils Utilisateurs + Recommandation Marketing
+
+platforms:
+  reddit:
+    enabled: true
+    fragment_id: "F1_reddit"
+    limit_posts: 100
+    limit_comments: 200
+    signal_type: "interest"
+  linkedin:
+    enabled: true
+    fragment_id: "F2_linkedin"
+    signal_type: "professional"
+    method: "mcp"          # "mcp" | "playwright"
+  amazon:
+    enabled: true
+    fragment_id: "F3_amazon"
+    signal_type: "purchase"
+    method: "playwright"
+    limit_reviews: 50
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
+  bias: "none"
+
+training:
+  base_model: "mistralai/Mistral-7B-Instruct-v0.3"
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.1
+  fp16: true
+  gradient_checkpointing: true
+  seed: 42                 # FIXÉ pour reproductibilité
+  load_in_4bit: true       # QLoRA
+  max_seq_length: 512
+
+federated:
+  algorithm: "fedavg"      # "fedavg" | "fedprox" | "scaffold"
+  mu: 0.01                 # FedProx proximal coefficient
+  dp_noise_sigma: 0.0      # 0.0 = pas de DP ; >0 = DP activé
+  n_rounds: 1              # rounds fédérés (1 suffit pour un seul utilisateur)
+
+recommendation:
+  encoder_model: "all-mpnet-base-v2"
+  top_k: 10
+  campaign_threshold: 0.5
+  n_clusters: 5
+
+storage:
+  silos_dir: "./data/silos"
+  profiles_dir: "./data/profiles"
+  models_dir: "./models/lora_weights"
+
+mlflow:
+  tracking_uri: "./mlruns"
+  experiment_name: "federated_profiling"
