@@ -73,6 +73,11 @@ crawl = [
   "beautifulsoup4>=4.12,<5",
 ]
 
+# Store de profils partagé RAM-only (multi-process/workers) — optionnel
+redis = [
+  "redis>=5,<6",
+]
+
 # Couche 5 — dashboard : voir frontend/ (React + Vite, géré par npm).
 
 [tool.setuptools]

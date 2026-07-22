@@ -134,3 +134,46 @@ pip install sentence-transformers
 ```
 
 Le premier appel télécharge le modèle `all-mpnet-base-v2` (~400 Mo).
+
+---
+
+## 8. Store de profils partagé (multi-process / multi-workers)
+
+Par défaut, les profils vivent dans un registre RAM **local au process**
+(`PROFILE_STORE_BACKEND=memory`). Le CLI et l'API ne le partagent donc pas, et
+lancer l'API avec plusieurs workers casserait la cohérence.
+
+Pour partager les profils entre le CLI, l'API et **N** workers — tout en
+respectant le « no disk » — utiliser **Redis en mode RAM-only** (persistance
+désactivée : ni RDB, ni AOF) :
+
+```bash
+# Lancer Redis SANS persistance (rien n'est écrit sur disque)
+redis-server --save "" --appendonly no
+# ...ou via Docker :
+docker run --rm -p 6379:6379 redis:7 redis-server --save "" --appendonly no
+```
+
+Installer le client et activer le backend :
+
+```powershell
+pip install -e ".[redis]"
+```
+
+Dans `.env` :
+
+```dotenv
+PROFILE_STORE_BACKEND=redis
+REDIS_URL=redis://localhost:6379/0
+```
+
+L'interface est identique (`ProfileStore.save/load/load_all/clear`) : aucun
+autre changement de code. On peut alors lancer plusieurs workers :
+
+```powershell
+uvicorn maha_these.layer5_api.main:app --workers 4
+```
+
+> Vérifier que Redis est bien sans persistance : `redis-cli config get save`
+> doit renvoyer une valeur vide, et `appendonly` doit être `no`. Ainsi aucune
+> donnée n'atterrit sur disque.

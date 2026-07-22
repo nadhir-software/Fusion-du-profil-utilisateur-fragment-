@@ -92,7 +92,9 @@ Autres répertoires (racine du dépôt) :
 - `tests/` — tests unitaires (dont invariants de confidentialité) + intégration.
 - `data/` — **rien n'est persisté** : données brutes ET profils générés
   vivent uniquement en RAM (`SessionBuffer` + `ProfileStore` en mémoire) et
-  sont effacés en fin de session.
+  sont effacés en fin de session. Pour partager les profils entre process /
+  workers sans disque, un backend **Redis RAM-only** est activable via
+  `PROFILE_STORE_BACKEND=redis` (voir RUNBOOK §8).
 - `models/` — modèle de base + poids LoRA (gitignorés — seuls artefacts disque).
 
 ### Lancer les services
