@@ -49,7 +49,7 @@ class Comment(BaseModel):
 class Fragment(BaseModel):
     """Fragment fédéré : données locales d'une plateforme, prêtes à entraîner."""
 
-    fragment_id: str                 # ex: "F1_reddit"
+    fragment_id: str  # ex: "F1_reddit"
     signal_type: SignalType
     user_hash: str
     n_samples: int = 0

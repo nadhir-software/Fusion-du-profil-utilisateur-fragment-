@@ -13,11 +13,7 @@ from evaluation.baselines import (
     FederatedConfig,
     MonoSourceConfig,
 )
-from evaluation.metrics.profile_metrics import (
-    precision_at_k,
-    rouge_l,
-    semantic_coherence,
-)
+from evaluation.metrics.profile_metrics import precision_at_k
 from evaluation.metrics.reco_metrics import ndcg_at_k
 from evaluation.mlflow_tracker import MLflowTracker
 
@@ -40,7 +36,9 @@ class Exp01Comparison:
         results: dict[str, dict[str, float]] = {}
         with self.tracker.run("EXP-01-comparison"):
             for name, config in configs:
-                profile = config.run_pipeline(self.data)  # NotImplemented tant que Phase 3
+                profile = config.run_pipeline(
+                    self.data
+                )  # NotImplemented tant que Phase 3
                 metrics = self._evaluate(profile)
                 self.tracker.log_params({"config": name})
                 self.tracker.log_metrics(metrics)
@@ -56,7 +54,5 @@ class Exp01Comparison:
             "precision_at_5": precision_at_k(
                 profile.get("interests", []), self.holdout, k=5
             ),
-            "ndcg_at_10": ndcg_at_k(
-                profile.get("interests", []), self.holdout, k=10
-            ),
+            "ndcg_at_10": ndcg_at_k(profile.get("interests", []), self.holdout, k=10),
         }

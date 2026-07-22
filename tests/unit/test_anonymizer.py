@@ -30,9 +30,7 @@ def test_hash_deterministic():
 
 def test_clean_text_removes_mentions_urls_emails():
     anon = DataAnonymizer()
-    cleaned = anon.clean_text(
-        "hi u/bob see https://x.com and mail me a@b.com"
-    )
+    cleaned = anon.clean_text("hi u/bob see https://x.com and mail me a@b.com")
     assert "u/bob" not in cleaned
     assert "https://x.com" not in cleaned
     assert "a@b.com" not in cleaned

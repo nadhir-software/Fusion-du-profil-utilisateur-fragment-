@@ -57,4 +57,6 @@ class LocalDataSilo:
         return Path(other_path).resolve() == self.path.resolve()
 
     def __repr__(self) -> str:  # pragma: no cover - cosmétique
-        return f"<LocalDataSilo platform={self.platform!r} user_hash={self.user_hash!r}>"
+        return (
+            f"<LocalDataSilo platform={self.platform!r} user_hash={self.user_hash!r}>"
+        )

@@ -13,7 +13,9 @@ import time
 class RateLimiter:
     """Token bucket : autorise ``rate`` requêtes par ``per`` secondes."""
 
-    def __init__(self, rate: int, per: float = 60.0, capacity: int | None = None) -> None:
+    def __init__(
+        self, rate: int, per: float = 60.0, capacity: int | None = None
+    ) -> None:
         self.rate = rate
         self.per = per
         self.capacity = capacity if capacity is not None else rate

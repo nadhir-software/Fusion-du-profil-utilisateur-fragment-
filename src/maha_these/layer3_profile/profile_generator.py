@@ -47,7 +47,7 @@ class ProfileGenerator:
                 "error": "json_parse_failed",
                 "raw": json_str,
             }
-        profile["user_hash"] = user_hash            # jamais l'identité réelle
+        profile["user_hash"] = user_hash  # jamais l'identité réelle
         profile["profile_version"] = "federated"
         profile["generated_at"] = datetime.now(timezone.utc).isoformat()
         return profile

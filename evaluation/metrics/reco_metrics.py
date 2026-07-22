@@ -14,9 +14,7 @@ def _dcg(gains: Sequence[float]) -> float:
     return sum(g / math.log2(i + 2) for i, g in enumerate(gains))
 
 
-def ndcg_at_k(
-    predicted: Sequence[Any], relevant: Sequence[Any], k: int
-) -> float:
+def ndcg_at_k(predicted: Sequence[Any], relevant: Sequence[Any], k: int) -> float:
     """NDCG@K avec gains binaires (1 si pertinent, 0 sinon)."""
     if k <= 0:
         return 0.0

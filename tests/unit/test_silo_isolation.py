@@ -5,9 +5,7 @@ from maha_these.core.local_silo import LocalDataSilo
 
 def test_silo_not_shared_between_agents(tmp_path):
     """Chaque silo n'est accessible que par son propre agent."""
-    silo_reddit = LocalDataSilo(
-        "reddit", data={"user_hash": "u1"}, output_dir=tmp_path
-    )
+    silo_reddit = LocalDataSilo("reddit", data={"user_hash": "u1"}, output_dir=tmp_path)
     silo_linkedin = LocalDataSilo(
         "linkedin", data={"user_hash": "u1"}, output_dir=tmp_path
     )

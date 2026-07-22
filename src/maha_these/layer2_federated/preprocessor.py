@@ -32,7 +32,11 @@ class PreprocessorAgent(BaseAgent):
             for item in items:
                 if not isinstance(item, dict):
                     continue
-                parts = [item.get("title", ""), item.get("body", ""), item.get("text", "")]
+                parts = [
+                    item.get("title", ""),
+                    item.get("body", ""),
+                    item.get("text", ""),
+                ]
                 joined = " ".join(p for p in parts if p).strip()
                 if joined:
                     texts.append(joined)
@@ -45,9 +49,7 @@ class PreprocessorAgent(BaseAgent):
 
     def filter_length(self, texts: list[str]) -> list[str]:
         return [
-            t
-            for t in texts
-            if self.min_length <= len(t.split()) <= self.max_length
+            t for t in texts if self.min_length <= len(t.split()) <= self.max_length
         ]
 
     def run(self, silo_data: dict[str, Any]) -> dict[str, Any]:

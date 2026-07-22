@@ -37,9 +37,7 @@ class ProfileEncoder:
             " ".join(profile.get("interests", [])),
             " ".join(profile.get("needs", {}).get("implicit", [])),
             profile.get("professional", {}).get("sector", ""),
-            " ".join(
-                profile.get("consumption", {}).get("preferred_categories", [])
-            ),
+            " ".join(profile.get("consumption", {}).get("preferred_categories", [])),
         ]
         return " ".join(p for p in parts if p)
 

@@ -15,9 +15,7 @@ from dashboard.pages import ciblage, evaluation, profil, recommandation
 st.set_page_config(page_title="Federated Profiling Dashboard", layout="wide")
 st.title("Federated User Profiling — Dashboard")
 
-tabs = st.tabs(
-    ["Profil", "Recommandation", "Ciblage Marketing", "Évaluation"]
-)
+tabs = st.tabs(["Profil", "Recommandation", "Ciblage Marketing", "Évaluation"])
 
 with tabs[0]:
     profil.render()

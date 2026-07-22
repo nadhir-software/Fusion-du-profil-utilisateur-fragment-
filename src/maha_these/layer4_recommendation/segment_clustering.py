@@ -51,7 +51,7 @@ class SegmentClustering:
 
         segments: list[dict[str, Any]] = []
         for seg_id in range(n_clusters):
-            members = [p for p, l in zip(target_profiles, labels) if l == seg_id]
+            members = [p for p, lbl in zip(target_profiles, labels) if lbl == seg_id]
             avg = float(np.mean(target_scores[labels == seg_id]))
             segments.append(
                 {

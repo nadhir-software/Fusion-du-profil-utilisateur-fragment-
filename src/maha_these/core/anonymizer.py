@@ -37,9 +37,9 @@ class DataAnonymizer:
         """
         if not text:
             return ""
-        text = _URL_RE.sub("[URL]", text)        # URLs
-        text = _EMAIL_RE.sub("[EMAIL]", text)    # emails
-        text = _MENTION_RE.sub("[USER]", text)   # mentions Reddit / @handles
+        text = _URL_RE.sub("[URL]", text)  # URLs
+        text = _EMAIL_RE.sub("[EMAIL]", text)  # emails
+        text = _MENTION_RE.sub("[USER]", text)  # mentions Reddit / @handles
         return text.strip()
 
     def anonymize(self, data: dict[str, Any]) -> dict[str, Any]:

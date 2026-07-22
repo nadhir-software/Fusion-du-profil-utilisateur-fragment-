@@ -45,9 +45,7 @@ class CrawlerAgent(BaseAgent):
             output_dir=output_dir or self.output_dir,
         )
         path = silo.save()
-        n_items = sum(
-            len(v) for v in anon_data.values() if isinstance(v, list)
-        )
+        n_items = sum(len(v) for v in anon_data.values() if isinstance(v, list))
         return {
             "status": "success",
             "platform": self.platform,

@@ -18,9 +18,7 @@ def radar_chart(interests: Sequence[str]) -> None:
     # Score uniforme faute de pondération : à enrichir quand le profil
     # exposera des poids d'intérêt (Phase 2).
     values = [1.0] * len(labels)
-    fig = go.Figure(
-        data=go.Scatterpolar(r=values, theta=labels, fill="toself")
-    )
+    fig = go.Figure(data=go.Scatterpolar(r=values, theta=labels, fill="toself"))
     fig.update_layout(
         polar={"radialaxis": {"visible": True, "range": [0, 1]}},
         showlegend=False,

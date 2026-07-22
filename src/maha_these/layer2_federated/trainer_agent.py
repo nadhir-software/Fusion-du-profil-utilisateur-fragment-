@@ -42,11 +42,11 @@ class TrainerAgent(BaseAgent):
 
         model = AutoModelForCausalLM.from_pretrained(
             self.base_model_name,
-            load_in_4bit=True,      # QLoRA
+            load_in_4bit=True,  # QLoRA
             device_map="auto",
         )
         model = get_peft_model(model, LoRAConfigurator(self.lora_cfg).build())
-        if global_weights:          # initialiser avec les poids globaux
+        if global_weights:  # initialiser avec les poids globaux
             model.load_state_dict(global_weights, strict=False)
         return model
 
