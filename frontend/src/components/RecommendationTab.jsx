@@ -40,6 +40,21 @@ export default function RecommendationTab() {
     }
   }
 
+  async function generateFromAmazon() {
+    if (!userHash) return;
+    setError("");
+    setRecos(null);
+    setLoading(true);
+    try {
+      const data = await api.recommendFromCatalog(userHash, Number(topK));
+      setRecos(data.recommendations || []);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <section>
       <h2>Recommandations utilisateur</h2>
@@ -61,18 +76,30 @@ export default function RecommendationTab() {
             onChange={(e) => setTopK(e.target.value)}
           />
         </label>
-        <button className="btn" onClick={generate} disabled={loading || !userHash}>
-          {loading ? "Génération…" : "Générer"}
+        <button
+          className="btn"
+          onClick={generateFromAmazon}
+          disabled={loading || !userHash}
+        >
+          {loading ? "…" : "Catalogue Amazon (réel)"}
         </button>
       </div>
 
-      <label className="field-label">Catalogue produits (JSON)</label>
-      <textarea
-        className="textarea"
-        rows={8}
-        value={catalogText}
-        onChange={(e) => setCatalogText(e.target.value)}
-      />
+      <details>
+        <summary className="muted">Ou tester avec un catalogue JSON manuel</summary>
+        <div className="row" style={{ marginTop: 10 }}>
+          <button className="btn" onClick={generate} disabled={loading || !userHash}>
+            {loading ? "Génération…" : "Générer (JSON)"}
+          </button>
+        </div>
+        <label className="field-label">Catalogue produits (JSON)</label>
+        <textarea
+          className="textarea"
+          rows={8}
+          value={catalogText}
+          onChange={(e) => setCatalogText(e.target.value)}
+        />
+      </details>
 
       {error && <p className="error">{error}</p>}
 

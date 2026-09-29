@@ -18,11 +18,25 @@ export const api = {
   getProfile: (userHash) =>
     request(`/api/v1/profile/${encodeURIComponent(userHash)}`),
 
+  buildRedditProfile: (username, limit = 100) =>
+    request("/api/v1/reddit/profile", {
+      method: "POST",
+      body: JSON.stringify({ username, limit }),
+    }),
+
   recommendToUser: (userHash, catalog, topK) =>
     request("/api/v1/recommend/user", {
       method: "POST",
       body: JSON.stringify({ user_hash: userHash, catalog, top_k: topK }),
     }),
+
+  recommendFromCatalog: (userHash, topK) =>
+    request("/api/v1/recommend/catalog", {
+      method: "POST",
+      body: JSON.stringify({ user_hash: userHash, top_k: topK }),
+    }),
+
+  catalogInfo: () => request("/api/v1/catalog/info"),
 
   findCampaignTargets: (description, threshold) =>
     request("/api/v1/recommend/campaign", {

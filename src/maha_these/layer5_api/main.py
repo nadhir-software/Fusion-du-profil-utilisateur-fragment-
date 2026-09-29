@@ -11,7 +11,15 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import crawl, dev, evaluate, profile, recommend, segments
+from .routers import crawl, dev, evaluate, profile, reddit, recommend, segments
+
+# Charge les identifiants du .env (Reddit, HuggingFace…) dans l'environnement.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:  # pragma: no cover
+    pass
 
 app = FastAPI(title="Federated User Profiling API", version="1.0")
 
@@ -32,6 +40,7 @@ app.include_router(profile.router)
 app.include_router(recommend.router)
 app.include_router(segments.router)
 app.include_router(evaluate.router)
+app.include_router(reddit.router)  # crawl Reddit réel -> profil heuristique
 app.include_router(dev.router)  # DEV ONLY — seed de profils de démo
 
 

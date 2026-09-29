@@ -142,23 +142,30 @@ class FederatedProfilingPipeline:
         return ProfileGenerator().generate(model, tokenizer, user_hash)
 
     def _load_global_model(self, theta_global: dict):
-        """Charge le modèle de base + applique θ_global (import ML paresseux)."""
-        from peft import get_peft_model
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        return load_global_model(theta_global, self.lora_cfg, self.training_cfg)
 
-        from maha_these.layer2_federated.lora_config import LoRAConfigurator
 
-        base = self.training_cfg.get("base_model", "mistralai/Mistral-7B-Instruct-v0.3")
-        model = AutoModelForCausalLM.from_pretrained(
-            base,
-            load_in_4bit=self.training_cfg.get("load_in_4bit", True),
-            device_map="auto",
-        )
-        model = get_peft_model(model, LoRAConfigurator(self.lora_cfg).build())
-        if theta_global:
-            model.load_state_dict(theta_global, strict=False)
-        tokenizer = AutoTokenizer.from_pretrained(base)
-        return model, tokenizer
+def load_global_model(theta_global: dict, lora_cfg: dict, training_cfg: dict):
+    """Charge le modèle de base + applique θ_global (imports ML paresseux).
+
+    Réutilisé par le pipeline et par les baselines d'évaluation.
+    """
+    from peft import get_peft_model
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    from maha_these.layer2_federated.lora_config import LoRAConfigurator
+
+    base = training_cfg.get("base_model", "mistralai/Mistral-7B-Instruct-v0.3")
+    model = AutoModelForCausalLM.from_pretrained(
+        base,
+        load_in_4bit=training_cfg.get("load_in_4bit", True),
+        device_map="auto",
+    )
+    model = get_peft_model(model, LoRAConfigurator(lora_cfg).build())
+    if theta_global:
+        model.load_state_dict(theta_global, strict=False)
+    tokenizer = AutoTokenizer.from_pretrained(base)
+    return model, tokenizer
 
 
 def build_default_pipeline(

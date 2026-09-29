@@ -33,6 +33,11 @@ class CampaignRequest(BaseModel):
     threshold: float = 0.5
 
 
+class CatalogRecoRequest(BaseModel):
+    user_hash: str
+    top_k: int = 10
+
+
 class ProfileResponse(BaseModel):
     user_hash: str
     interests: list[str] = Field(default_factory=list)

@@ -26,4 +26,6 @@ reports/figures/*
 models/**
 mlruns/
 tmp/
+# Catalogues téléchargés (données produits publiques, régénérables)
+data/catalogs/**
 !**/.gitkeep

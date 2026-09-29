@@ -23,8 +23,13 @@ cet environnement** (pas de GPU/torch/modèles ici).
 **Statut global :** Phase 1 (multisources) terminée au niveau structure + tests ;
 Phase 2/3 câblées, en attente d'exécution sur machine équipée (GPU + identifiants).
 
-**Qualité :** `28 tests passent, 4 skippés` (les 4 skips = tests numériques qui
-exigent `torch`). `ruff` + `black` clean. CI GitHub Actions en place.
+**Qualité :** `50 tests passent, 2 skippés` (les 2 skips = tests d'intégration
+volontairement marqués skip ; les tests `torch` tournent désormais). `ruff` +
+`black` clean. CI GitHub Actions en place.
+
+**Mise à jour du 2026-07-24 :** `torch`, `transformers` et `sentence-transformers`
+sont installés dans l'environnement. Le **moteur de recommandation est actif et
+testé en live** (onglets Recommandation + Ciblage fonctionnels).
 
 ---
 
@@ -60,6 +65,7 @@ Légende de statut utilisée ci-dessous :
 | 5 | **Secure Aggregation** ajouté (FedAvg / FedProx / Secure / DP) | Aligné sur le diagramme d'architecture révisé |
 | 6 | **OrchestrationAgent** (Workflow Manager) ajouté | Coordonne les crawlers dans une session RAM unique |
 | 7 | `ProfileStore` = **façade à backend enfichable** (mémoire / Redis RAM-only) | Partager les profils entre CLI/API/workers sans disque |
+| 8 | **Données synthétiques** (générateur multi-plateformes) pour la démo ; **pas de scraping Reddit/Amazon** | Conformité ToS Reddit/Amazon + RGPD ; données réelles = voie RFR Program + consentement |
 
 ---
 
@@ -97,7 +103,7 @@ Légende de statut utilisée ci-dessous :
 ### Couche 3 — Agrégation & profil · `src/maha_these/layer3_profile/`
 | Module | Statut | Rôle |
 |---|---|---|
-| `aggregator.py` | ⚙️ (logique ✅) | FedAvg/FedProx/**Secure**/DP ; test numérique skippé sans torch |
+| `aggregator.py` | ✅ testé (torch) | FedAvg/FedProx/**Secure**/DP — FedAvg numérique validé |
 | `profile_generator.py` | ⚙️ | Génération profil JSON par inférence LLM |
 | `profile_store.py` | ✅ testé | **Façade** : backend mémoire (défaut) ou **Redis RAM-only** |
 | `profile_schemas.py` | ✅ | Schéma JSON du profil |
@@ -105,11 +111,11 @@ Légende de statut utilisée ci-dessous :
 ### Couche 4 — Recommandation · `src/maha_these/layer4_recommendation/`
 | Module | Statut | Rôle |
 |---|---|---|
-| `profile_encoder.py` | ⚙️ | Embeddings Sentence-BERT (requiert `sentence-transformers`) |
-| `content_based.py` | ⚙️ | Similarité cosinus profil ↔ items |
-| `segment_clustering.py` | ⚙️ | KMeans sur profils cibles (requiert sklearn + ST) |
+| `profile_encoder.py` | ✅ actif | Embeddings Sentence-BERT (`all-mpnet-base-v2` installé) |
+| `content_based.py` | ✅ testé live | Similarité cosinus profil ↔ items |
+| `segment_clustering.py` | ✅ testé live | KMeans sur profils cibles (sklearn + ST) |
 | `llm_recommender.py` | 🚧/⚙️ | Explications LLM (requiert modèle + tokenizer) |
-| `marketing_engine.py` | ⚙️ | Façade Axe 1 (user) + Axe 2 (marketeur) |
+| `marketing_engine.py` | ✅ actif | Façade Axe 1 (user) + Axe 2 (marketeur) |
 
 ### Couche 5 — API REST · `src/maha_these/layer5_api/`
 | Élément | Statut | Rôle |
@@ -117,7 +123,7 @@ Légende de statut utilisée ci-dessous :
 | `main.py` | ✅ | App FastAPI + CORS (React) |
 | `routers/crawl.py` | ✅ endpoint (⚙️ tâche de fond) | `POST /crawl` → lance le pipeline, renvoie le `user_hash` |
 | `routers/profile.py` | ✅ | `GET /profile/{hash}` |
-| `routers/recommend.py` | ✅ endpoint (⚙️ à l'appel) | `POST /recommend/user` + `/campaign` (requiert ST) |
+| `routers/recommend.py` | ✅ testé live | `POST /recommend/user` + `/campaign` — embeddings réels |
 | `routers/segments.py` | ✅ | `GET /profiles/segments` |
 | `routers/evaluate.py` | ✅ (placeholder) | `GET /evaluate/comparison` |
 | `routers/dev.py` | ✅ | `POST/DELETE /dev/seed` — profils de démo (DEV ONLY) |
@@ -135,29 +141,33 @@ via `POST /api/v1/crawl`.
 | `metrics/profile_metrics.py` | precision@K ✅ · semantic_coherence ⚙️ · rouge_l ⚙️ |
 | `metrics/reco_metrics.py` | ndcg@K ✅ · precision@K ✅ · davies_bouldin ⚙️ |
 | `metrics/privacy_metrics.py` | ✅ (volume Δθ, ratio privacy/utility) |
-| `baselines.py` | 🚧 `run_pipeline` à implémenter (Phase 3) |
-| `experiments/exp_01..05` | exp_01 ⚙️ partiel · exp_02–05 🚧 stubs |
+| `baselines.py` | ✅ `fragment_plan` testé · `run_pipeline` câblé + **DP** (entraînement ⚙️) |
+| `experiments/exp_01..05` | **les 5 runners ✅ testés** (entraînement ⚙️ ; EXP-03 utilise Sentence-BERT actif) |
 | `mlflow_tracker.py` | ✅ wrapper (⚙️ requiert mlflow à l'usage) |
 
 ### Dashboard React · `frontend/`
 ✅ **compile** (`vite build` OK) · 4 onglets · client API · thème clair/sombre.
 - Onglet **Profil** + vue segments : ✅ fonctionnent (avec profils en RAM).
-- Onglets **Recommandation** / **Ciblage** : ⚙️ nécessitent `sentence-transformers`.
+- Onglets **Recommandation** / **Ciblage** : ✅ fonctionnent (Sentence-BERT
+  installé, endpoints testés en live).
 
 ---
 
 ## 5. Ce qui tourne RÉELLEMENT ici vs ce qui nécessite une installation
 
-**✅ Fonctionne maintenant (base + `[dev]` installés)**
-- API REST (santé, profil, segments, evaluate, seed de démo)
+**✅ Fonctionne maintenant (torch + transformers + sentence-transformers installés)**
+- API REST complète (santé, profil, segments, evaluate, seed, **recommandation**)
 - Anonymisation, tampon RAM, isolation de session, orchestration
-- Agrégation FedAvg (logique), store de profils (mémoire + Redis via faux client)
-- Dashboard React (build + onglet Profil/segments avec données seedées)
-- Métriques pures (precision@K, ndcg@K, privacy)
+- Agrégation FedAvg (numérique, **testée**), store de profils (mémoire + Redis)
+- **Moteur de recommandation** : content-based + clustering (Sentence-BERT), testé live
+- Dashboard React (build + 4 onglets : Profil, Reco, Ciblage, Évaluation)
+- Métriques : precision@K, ndcg@K, privacy, cohérence sémantique
 
-**⚙️ Nécessite `pip install -e ".[ai]"`** (torch, transformers, peft, trl, sentence-transformers)
-- Entraînement LoRA, agrégation numérique, génération de profil
-- Onglets Recommandation/Ciblage (embeddings), métriques ROUGE/cohérence
+**⚙️ Reste à installer `pip install peft trl datasets accelerate`** (entraînement)
+- Entraînement LoRA local + génération de profil par LLM (Mistral-7B)
+- Métrique ROUGE (`rouge-score`)
+
+**⚙️ Nécessite `pip install -e ".[crawl]"`** — crawling réel (+ identifiants Reddit)
 
 **⚙️ Nécessite `pip install -e ".[crawl]"`** (praw, playwright, bs4)
 - Crawling réel Reddit/LinkedIn/Amazon (+ `playwright install chromium` + identifiants)
@@ -206,8 +216,9 @@ Détails : `RUNBOOK.md` §8.
 
 ## 8. Tests & qualité
 
-- **28 tests passent, 4 skippés** (`pytest -q`). Les 4 skips exigent `torch`
-  (formule FedAvg numérique, round-trip Δθ) et 2 tests d'intégration marqués skip.
+- **50 tests passent, 2 skippés** (`pytest -q`). Les 2 skips = tests d'intégration
+  volontairement marqués skip (pipeline complet / qualité reco). Les tests `torch`
+  (FedAvg numérique, round-trip Δθ) passent désormais (torch installé).
 - **Invariants de confidentialité couverts sans pile ML** : anonymisation (no PII),
   isolation/effacement du `SessionBuffer`, `TrainerOutput` ne porte que des Δθ,
   crawlers n'écrivent qu'en RAM, store RAM.
@@ -246,7 +257,7 @@ Frontend : `cd frontend && npm install` (Node ≥ 18).
 |---|---|---|
 | **0 — Fondation** | Reddit + LLM+LoRA+FedAvg + métriques | ✅ (structure) — exécution ML à relancer |
 | **1 — Multisources** | Crawlers LinkedIn/Amazon, anonymiseur, silos, baselines, tests | ✅ crawlers + anonymiseur + **RAM** + tests ; baselines 🚧 |
-| **2 — Reco + API** | Sentence-BERT, content-based, API 7 endpoints, dashboard, MLflow | ✅ API + dashboard React ; reco ⚙️ (ST) ; MLflow wrapper ✅ |
+| **2 — Reco + API** | Sentence-BERT, content-based, API 7 endpoints, dashboard, MLflow | ✅ API + dashboard React + **reco active** (Sentence-BERT, testée) ; MLflow wrapper ✅ |
 | **3 — Science + Pub** | EXP-01..04, LLM matching, clustering, rédaction | ⚙️/🚧 câblé, à exécuter |
 
 ---
@@ -254,12 +265,13 @@ Frontend : `cd frontend && npm install` (Node ≥ 18).
 ## 12. Ce qui reste à faire (par priorité)
 
 1. **Exécuter le pipeline réel** sur machine GPU (RUNBOOK) : valider crawl→train→profil.
-2. **Onglets Reco/Ciblage** : `pip install sentence-transformers` → moteur content-based réel.
-3. **`evaluation/baselines.py`** : implémenter `run_pipeline` (fédéré/centralisé/mono) pour EXP-01.
-4. **Campagnes EXP-02..05** : compléter les runners (impact fragments, ablation rang LoRA, DP).
+2. ~~Onglets Reco/Ciblage (sentence-transformers)~~ — ✅ **Fait** (installé, testé live).
+3. ~~`evaluation/baselines.py` + EXP-01~~ — ✅ **Fait** (fragment_plan testé, harnais comparatif). Reste à exécuter avec l'entraînement réel.
+4. ~~EXP-02/03/04/05~~ ✅ **Fait** — les 5 campagnes ont un runner testé ; DP câblé dans l'agrégation.
 5. **Secure Aggregation** : brancher le protocole cryptographique réel (masquage par paires).
 6. **`mcp_client.py`** : brancher le transport MCP (LinkedIn/Reddit).
-7. **CI Node** (optionnel) : ajouter `npm ci && npm run build` au workflow.
+7. ~~CI Node~~ ✅ **Fait** — job `frontend` (npm ci + `npm run build`) ajouté au workflow.
+8. ~~Nettoyage `dashboard/` (Streamlit)~~ ✅ **Fait** — supprimé (remplacé par `frontend/` React).
 
 ---
 
