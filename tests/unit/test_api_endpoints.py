@@ -45,3 +45,36 @@ def test_segments_empty():
     body = resp.json()
     assert body["total_profiles"] == 0
     assert body["segments"] == []
+
+
+def test_list_profiles_empty():
+    resp = client.get("/api/v1/profiles")
+    assert resp.status_code == 200
+    assert resp.json() == {"count": 0, "profiles": []}
+
+
+def test_list_profiles_summary():
+    ProfileStore.save(
+        {
+            "user_hash": "u1",
+            "interests": ["ml", "cyclisme", "photo", "cuisine", "extra"],
+            "professional": {"sector": "Tech"},
+            "marketing_segments": ["a", "b", "c"],
+            "platforms_covered": ["reddit"],
+        }
+    )
+    body = client.get("/api/v1/profiles").json()
+    assert body["count"] == 1
+    p = body["profiles"][0]
+    assert p["user_hash"] == "u1"
+    assert p["sector"] == "Tech"
+    assert len(p["interests"]) == 4  # résumé tronqué
+    assert len(p["segments"]) == 2
+
+
+def test_seed_demo_populates_many_named_profiles():
+    resp = client.post("/api/v1/dev/seed")
+    assert resp.status_code == 200
+    assert resp.json()["count"] >= 16  # profils démo étendus
+    hashes = {p["user_hash"] for p in client.get("/api/v1/profiles").json()["profiles"]}
+    assert {"demo_alice", "demo_maha", "demo_karim"} <= hashes

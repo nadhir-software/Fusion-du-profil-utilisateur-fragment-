@@ -40,10 +40,11 @@ frontend/
 ├── package.json
 └── src/
     ├── main.jsx            # point d'entrée React
-    ├── App.jsx             # navigation par onglets
+    ├── App.jsx             # shell : header, statut API live, nav à onglets, footer
     ├── api.js              # client fetch de l'API
-    ├── styles.css          # thème clair/sombre
+    ├── styles.css          # design system + thème clair/sombre
     └── components/
+        ├── ui.jsx               # primitives : Icon (SVG), Spinner, Notice, EmptyState, Chips
         ├── ProfileTab.jsx
         ├── RecommendationTab.jsx
         ├── TargetingTab.jsx
@@ -51,6 +52,13 @@ frontend/
         ├── RadarChart.jsx        # radar SVG (sans dépendance)
         └── RecommendationCard.jsx
 ```
+
+## Design
+
+Design system maison (variables CSS), **sans librairie UI ni icônes externes** :
+icônes SVG inline (`ui.jsx`), thème clair/sombre automatique (`prefers-color-scheme`),
+états de chargement (spinner), vides (`EmptyState`) et erreurs (`Notice`) unifiés,
+indicateur d'état de l'API en direct dans l'en-tête.
 
 > Rappel confidentialité : le dashboard ne fait que consommer l'API. Les
 > données brutes ne sont jamais persistées (RAM only côté backend).

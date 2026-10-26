@@ -134,6 +134,21 @@ _STOPWORDS = {
     "love",
     "new",
     "using",
+    # bruit générique des catalogues/avis
+    "magazine",
+    "magazines",
+    "issue",
+    "issues",
+    "print",
+    "subscription",
+    "subscriptions",
+    "product",
+    "item",
+    "amazon",
+    "read",
+    "reading",
+    "buy",
+    "bought",
 }
 
 

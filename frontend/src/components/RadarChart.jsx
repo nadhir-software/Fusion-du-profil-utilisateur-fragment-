@@ -8,7 +8,7 @@ export default function RadarChart({ labels = [], size = 260 }) {
   }
 
   const center = size / 2;
-  const radius = center - 40;
+  const radius = center - 46;
   const n = labels.length;
   const angle = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
 
@@ -17,9 +17,7 @@ export default function RadarChart({ labels = [], size = 260 }) {
     center + r * Math.sin(angle(i)),
   ];
 
-  const polygon = labels
-    .map((_, i) => point(i, radius).join(","))
-    .join(" ");
+  const polygon = labels.map((_, i) => point(i, radius).join(",")).join(" ");
 
   return (
     <svg viewBox={`0 0 ${size} ${size}`} className="radar" role="img">
@@ -37,31 +35,30 @@ export default function RadarChart({ labels = [], size = 260 }) {
       {labels.map((_, i) => {
         const [x, y] = point(i, radius);
         return (
-          <line
-            key={i}
-            x1={center}
-            y1={center}
-            x2={x}
-            y2={y}
-            className="radar-grid"
-          />
+          <line key={i} x1={center} y1={center} x2={x} y2={y} className="radar-grid" />
         );
       })}
       {/* aire du profil */}
       <polygon points={polygon} className="radar-area" />
+      {/* sommets */}
+      {labels.map((_, i) => {
+        const [x, y] = point(i, radius);
+        return <circle key={`d${i}`} cx={x} cy={y} r={3} className="radar-dot" />;
+      })}
       {/* étiquettes */}
       {labels.map((label, i) => {
-        const [x, y] = point(i, radius + 16);
+        const [x, y] = point(i, radius + 18);
+        const anchor = Math.abs(x - center) < 6 ? "middle" : x < center ? "end" : "start";
         return (
           <text
             key={label + i}
             x={x}
             y={y}
             className="radar-label"
-            textAnchor="middle"
+            textAnchor={anchor}
             dominantBaseline="middle"
           >
-            {label}
+            {label.length > 14 ? `${label.slice(0, 13)}…` : label}
           </text>
         );
       })}

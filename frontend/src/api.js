@@ -18,6 +18,27 @@ export const api = {
   getProfile: (userHash) =>
     request(`/api/v1/profile/${encodeURIComponent(userHash)}`),
 
+  listProfiles: () => request("/api/v1/profiles"),
+
+  seedDemo: () => request("/api/v1/dev/seed", { method: "POST" }),
+
+  seedSynthetic: (count = 10, seed = 42) =>
+    request("/api/v1/dev/synthetic", {
+      method: "POST",
+      body: JSON.stringify({ count, seed }),
+    }),
+
+  seedReviews: (category = "Subscription_Boxes", maxUsers = 200, minReviews = 2) =>
+    request("/api/v1/dev/reviews-profiles", {
+      method: "POST",
+      body: JSON.stringify({
+        category,
+        max_users: maxUsers,
+        min_reviews: minReviews,
+        max_records: 1000000,
+      }),
+    }),
+
   buildRedditProfile: (username, limit = 100) =>
     request("/api/v1/reddit/profile", {
       method: "POST",

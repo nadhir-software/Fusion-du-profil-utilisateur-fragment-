@@ -26,6 +26,11 @@ from maha_these.pipeline import PLATFORM_FRAGMENTS, load_global_model
 
 SIGNAL_BY_FRAGMENT = {fid: sig for fid, sig in PLATFORM_FRAGMENTS.values()}
 
+# Réglages d'entraînement injectés à l'exécution (ex. profil 8 Go de VRAM :
+# batch=1, seq court…). Fusionnés AVANT ``self.training_cfg`` — voir ``_train``.
+# Vide par défaut ; le runner GPU le renseigne en mode réel.
+RUNTIME_TRAINING_CFG: dict = {}
+
 
 @dataclass
 class BaselineConfig:
@@ -59,12 +64,14 @@ class BaselineConfig:
     def _train(self, fragment_id: str, texts: list[str], user_hash: str):
         signal = SIGNAL_BY_FRAGMENT.get(fragment_id, "interest")
         dataset, _ = FragmentBuilder(fragment_id, signal).build(texts, user_hash)
+        # priorité : config explicite de l'instance > overrides runtime (8 Go)
+        tcfg = {**RUNTIME_TRAINING_CFG, **self.training_cfg}
         trainer = TrainerAgent(
             fragment_id,
             SYSTEM_PROMPTS.get(fragment_id, ""),
             self.lora_cfg,
-            self.training_cfg.get("base_model", "mistralai/Mistral-7B-Instruct-v0.3"),
-            self.training_cfg,
+            tcfg.get("base_model", "mistralai/Mistral-7B-Instruct-v0.3"),
+            tcfg,
         )
         return trainer.run(dataset, global_weights=None)
 
@@ -79,8 +86,22 @@ class BaselineConfig:
         return theta
 
     def _generate(self, theta: dict, user_hash: str) -> dict:
-        model, tokenizer = load_global_model(theta, self.lora_cfg, self.training_cfg)
-        return ProfileGenerator().generate(model, tokenizer, user_hash)
+        tcfg = {**RUNTIME_TRAINING_CFG, **self.training_cfg}
+        model, tokenizer = load_global_model(theta, self.lora_cfg, tcfg)
+        try:
+            return ProfileGenerator().generate(model, tokenizer, user_hash)
+        finally:
+            # libère la VRAM entre deux configurations (petit GPU)
+            import gc
+
+            del model, tokenizer
+            gc.collect()
+            try:
+                import torch
+
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
 
 
 @dataclass

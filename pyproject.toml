@@ -52,9 +52,14 @@ ai = [
   "torch>=2.3,<3",
   "torchvision>=0.18,<1",
   "torchaudio>=2.3,<3",
-  "transformers>=4.43,<5",
+  # transformers <4.46 : compat trl 0.11 + huggingface-hub <1.0 (validé GPU).
+  "transformers>=4.43,<4.46",
+  "huggingface-hub>=0.24,<1.0",
+  "protobuf>=3.20,<6",
   "datasets>=2.20,<4",
   "accelerate>=0.33,<2",
+  # QLoRA 4-bit (GPU NVIDIA). Sous macOS : ignorer.
+  "bitsandbytes>=0.43; platform_system != 'Darwin'",
   "evaluate>=0.4,<1",
   "sentencepiece>=0.2,<1",
   "catboost>=1.2,<2",

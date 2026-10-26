@@ -8,6 +8,8 @@ CORS activé pour le front React en développement (Vite, http://localhost:5173)
 
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -42,6 +44,23 @@ app.include_router(segments.router)
 app.include_router(evaluate.router)
 app.include_router(reddit.router)  # crawl Reddit réel -> profil heuristique
 app.include_router(dev.router)  # DEV ONLY — seed de profils de démo
+
+
+@app.on_event("startup")
+async def _seed_registry_on_start() -> None:
+    """Registre « live » au démarrage si ``DEV_SEED_ON_START`` est défini.
+
+    Ex. ``DEV_SEED_ON_START=200`` → 16 profils démo + synthétiques pour
+    atteindre 200. Reste RAM-only (rien n'est écrit sur disque).
+    """
+    target = os.getenv("DEV_SEED_ON_START")
+    if not target:
+        return
+    try:
+        n = dev.seed_startup(int(target))
+        print(f"[startup] registre peuplé : {n} profils (DEV_SEED_ON_START={target})")
+    except Exception as exc:  # noqa: BLE001 — best effort au démarrage
+        print(f"[startup] seed ignoré : {exc}")
 
 
 @app.get("/health", tags=["health"])

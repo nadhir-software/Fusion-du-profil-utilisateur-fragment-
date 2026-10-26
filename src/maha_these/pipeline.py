@@ -150,21 +150,32 @@ def load_global_model(theta_global: dict, lora_cfg: dict, training_cfg: dict):
 
     Réutilisé par le pipeline et par les baselines d'évaluation.
     """
+    import torch
     from peft import get_peft_model
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
     from maha_these.layer2_federated.lora_config import LoRAConfigurator
 
     base = training_cfg.get("base_model", "mistralai/Mistral-7B-Instruct-v0.3")
+    quant = None
+    if training_cfg.get("load_in_4bit", True):
+        quant = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+        )
     model = AutoModelForCausalLM.from_pretrained(
         base,
-        load_in_4bit=training_cfg.get("load_in_4bit", True),
+        quantization_config=quant,
         device_map="auto",
     )
     model = get_peft_model(model, LoRAConfigurator(lora_cfg).build())
     if theta_global:
         model.load_state_dict(theta_global, strict=False)
     tokenizer = AutoTokenizer.from_pretrained(base)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
     return model, tokenizer
 
 
